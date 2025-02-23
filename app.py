@@ -61,6 +61,7 @@ def load_resumes():
     """Percorre a pasta de PDFs, extrai e pré-processa o texto e gera (ou carrega) os embeddings."""
     cache = load_cache()
     for filename in os.listdir(PDF_DIR):
+        print("Arquivo encontrado:", filename)
         if filename.lower().endswith(".pdf"):
             path = os.path.join(PDF_DIR, filename)
             raw_text = extract_text_from_pdf(path)
@@ -117,3 +118,4 @@ def index():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+    
