@@ -65,6 +65,7 @@ def load_resumes():
             raw_text = extract_text_from_pdf(path)
             text = preprocess_text(raw_text)
             resumes[filename] = text
+            print(f"Conteúdo de {filename}: {text}")  # Debug: imprime o texto extraído
             if filename in cache:
                 embeddings[filename] = cache[filename]
             else:
@@ -73,6 +74,7 @@ def load_resumes():
                 cache[filename] = emb
     save_cache(cache)
     print("Currículos carregados:", list(resumes.keys()))
+
 
 
 def cosine_similarity(a, b):
@@ -93,7 +95,9 @@ def index():
         results = []
         for filename, emb in embeddings.items():
             cos_sim = cosine_similarity(query_embedding, emb)
-            if query_processed in resumes[filename]:
+            contains = query_processed in resumes[filename]
+            print(f"Arquivo: {filename} - 'odair' está presente? {contains}")
+            if contains:
                 if len(query_processed.split()) <= 2:
                     score = 1.0
                 else:
@@ -102,9 +106,10 @@ def index():
                 score = cos_sim
             results.append((filename, score))
             print(f"Arquivo: {filename} - Score: {score}")
+
         
         results.sort(key=lambda x: x[1], reverse=True)
-        threshold = 0.5
+        threshold = 0.1
         matched = [filename for filename, score in results if score >= threshold]
         
         print("Resultados encontrados:", matched)
