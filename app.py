@@ -58,10 +58,8 @@ def save_cache(cache):
         json.dump(cache, f)
 
 def load_resumes():
-    """Percorre a pasta de PDFs, extrai e pré-processa o texto e gera (ou carrega) os embeddings."""
     cache = load_cache()
     for filename in os.listdir(PDF_DIR):
-        print("Arquivo encontrado:", filename)
         if filename.lower().endswith(".pdf"):
             path = os.path.join(PDF_DIR, filename)
             raw_text = extract_text_from_pdf(path)
@@ -74,6 +72,8 @@ def load_resumes():
                 embeddings[filename] = emb
                 cache[filename] = emb
     save_cache(cache)
+    print("Currículos carregados:", list(resumes.keys()))
+
 
 def cosine_similarity(a, b):
     """Calcula a similaridade cosseno entre dois vetores."""
@@ -91,12 +91,9 @@ def index():
         query_embedding = get_embedding(query_processed)
         
         results = []
-        # Para cada currículo, calcula a similaridade semântica e verifica se a query aparece literalmente
         for filename, emb in embeddings.items():
             cos_sim = cosine_similarity(query_embedding, emb)
-            # Se a query aparece literalmente no currículo, adiciona um bônus
             if query_processed in resumes[filename]:
-                # Se a consulta for curta (1 ou 2 palavras), atribui uma pontuação alta se encontrada
                 if len(query_processed.split()) <= 2:
                     score = 1.0
                 else:
@@ -104,18 +101,17 @@ def index():
             else:
                 score = cos_sim
             results.append((filename, score))
+            print(f"Arquivo: {filename} - Score: {score}")
         
-        # Ordena os resultados pela pontuação (maior primeiro)
         results.sort(key=lambda x: x[1], reverse=True)
-        
-        # Define um limiar para considerar um currículo compatível (ajuste conforme necessário)
         threshold = 0.5
         matched = [filename for filename, score in results if score >= threshold]
         
+        print("Resultados encontrados:", matched)
         return render_template("results.html", query=query, results=matched, all_results=results)
     return render_template("index.html")
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run()
-    
